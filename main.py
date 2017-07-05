@@ -1,82 +1,154 @@
 import random
 import textwrap
+import sys
 
-def show_theme_message():
-    print(dotted_line)
-    print("Viking Warrior v0.0.1:")
+if sys.version_info < (3, 0):
+    print("This code requires Python 3.x and is tested with version 3.5.x ")
+    print("Looks like you are trying to run this using "
+          "Python version: %d.%d " % (sys.version_info[0],
+                                      sys.version_info[1]))
+    print("Exiting...")
+    sys.exit(1)
+
+
+def show_theme_message(width):
+    """Print the game theme in the terminal window"""
+    print_dotted_line()
+    print_bold("Viking Warrior v0.0.5:")
     msg = (
-        "You died in battle as a brave warrior many years ago. Now you find yourself"
-        "risen from Valhalla but you don't know why. In your search for answers you"
-        "stumble upon a castle. The townsfolk and King of this land are upset. Their"
-        "precious princess has disappeared. Seeing your shield and sword, the King"
-        "asks you for your help."
-        )
-    print(textwrap.fill(msg, width = width))
+        "You were once a proud warrior who ran away from battle."
+        "This is extremely frowned upon in your home land and for your"
+        "betrayal, they banished to the the world of the humans. On a"
+        "mission to redeem yourself, you stumble upon a castle. The king"
+        "sees your sword and shield and immediatly asks you for help."
+        "The princess is missing, and the orcs are invading the village."
+        "You see this as a chance to redeem yourself, and save these people")
+
+    print(textwrap.fill(msg, width=width))
 
 
 def show_game_mission():
-    print("Mission:")
-    print("\tChoose a place where you can rest...")
-    print(dotted_line)
+    """Print the game mission in the terminal window"""
+    print_bold("Mission:")
+    print("\tChoose a house to search...")
+    print_dotted_line()
 
 
-def occupy_zones():
-    while keep_playing == 'y':
-        zones = []
-        # Randomly append 'enemy' or 'friend' or None to the zones list
-        while len(zones) < 5:
-            computer_choice = random.choice(occupants)
-            zones.append(computer_choice)
-
-
-def process_user_choice():
-    # Prompt user to select a huts
-    msg = "Choose a zone to ender (1-5): "
-    user_choice = input("\n" + msg)
-    idx = int(user_choice)
-    # Print the occupant info
-    print("Revealing the occupants...")
+def reveal_occupants(idx, houses):
+    """Print the occupants of the hut"""
     msg = ""
-
-
-def reveal_occupants():
-    for i in range(len(zones)):
-        occupant_info = "<%d:%s>"%(i + 1, zones[i])
+    print("Revealing the occupants...")
+    for i in range(len(houses)):
+        occupant_info = "<%d:%s>" % (i+1, houses[i])
         if i + 1 == idx:
             occupant_info = occupant_info
         msg += occupant_info + " "
+
     print("\t" + msg)
-    print(dotted_line)
+    print_dotted_line()
 
 
-def enter_zone():
-    print("Entering zone %d... " % idx, end = ' ')
+def occupy_houses():
+    """Randomly populate the `houses` list with occupants"""
+    huts = []
+    occupants = ['enemy', 'friend', 'unoccupied']
+    while len(houses) < 5:
+        computer_choice = random.choice(occupants)
+        houses.append(computer_choice)
+    return houses
 
-    # Determine and annouce the winnder
-    if zones[idx - 1] == "enemy":
-        print("YOU LOSE :( Better luck next time!")
+
+def process_user_choice():
+    """Accepts the house number from the user"""
+    msg = "Choose a house number to enter (1-5): "
+    user_choice = input("\n" + msg)
+    idx = int(user_choice)
+    return idx
+
+
+def show_health(health_meter, bold=False):
+    """Show the remaining hit points of the player and the enemy"""
+    msg = "Health: You: %d, Enemy: %d" \
+          % (health_meter['player'], health_meter['enemy'])
+
+    if bold:
+        print_bold(msg)
     else:
-        print("Congratulations! YOU WIN!!!")
-    print(dotted_line)
-    keep_playing = input("Play again? Yes(y)/No(n)")
+        print(msg)
+
+
+def reset_health_meter(health_meter):
+    """Reset the values of health_meter dict to the original ones"""
+    health_meter['player'] = 40
+    health_meter['enemy'] = 30
+
+
+def print_bold(msg, end='\n'):
+    """Print a string in 'bold' font"""
+    print(msg, end=end)
+
+
+def print_dotted_line(width=72):
+    """Print a dotted (rather 'dashed') line"""
+    print('-'*width)
+
+def attack(health_meter):
+    """The main logic to determine injured unit and amount of injury"""
+    hit_list = 4 * ['player'] + 6 * ['enemy']
+    injured_unit = random.choice(hit_list)
+    hit_points = health_meter[injured_unit]
+    injury = random.randint(10, 15)
+    health_meter[injured_unit] = max(hit_points - injury, 0)
+    print("ATTACK! ", end='')
+    show_health(health_meter)
+
+
+def play_game(health_meter):
+    """The main control function for playing the game"""
+    houses = occupy_houses()
+    idx = process_user_choice()
+    reveal_occupants(idx, houses)
+
+    if houses[idx - 1] != 'enemy':
+        print_bold("Congratulations! YOU WIN!!!")
+    else:
+        print_bold('ENEMY SIGHTED! ', end='')
+        show_health(health_meter, bold=True)
+        continue_attack = True
+
+        # Loop that actually runs the combat if user wants to attack
+        while continue_attack:
+            continue_attack = input(".......continue attack? (y/n): ")
+            if continue_attack == 'n':
+                print_bold("RUNNING AWAY with following health status...")
+                show_health(health_meter, bold=True)
+                print_bold("GAME OVER!")
+                break
+
+            attack(health_meter)
+
+            # Check if either one of the opponents is defeated
+            if health_meter['enemy'] <= 0:
+                print_bold("GOOD JOB! Enemy defeated! YOU WIN!!!")
+                break
+
+            if health_meter['player'] <= 0:
+                print_bold("YOU LOSE  :(  Better luck next time")
+                break
 
 
 def run_application():
+    """Top level control function for running the application."""
     keep_playing = 'y'
-    width = 72
-    dotted_line = '-' * width
-
-    show_theme_message(dotted_line, width)
-    show_game_mission(dotted_line)
+    health_meter = {}
+    reset_health_meter(health_meter)
+    show_game_mission()
 
     while keep_playing == 'y':
-        zones = occupy_zones()
-        idx = process_user_choice()
-        reveal_occupants(idx, zones, dotted_line)
-        enter_zone(idx, zones, dotted_line)
-        keep_playing = input("Play again? Yes(y)/No(n):")
+        reset_health_meter(health_meter)
+        play_game(health_meter)
+        keep_playing = input("\nPlay again? Yes(y)/No(n): ")
 
 
 if __name__ == '__main__':
     run_application()
-    occupants = ['enemy', 'friend', 'unoccupied']
