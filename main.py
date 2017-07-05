@@ -1,4 +1,24 @@
+import random
+import textwrap
+
 from sys import exit
+
+if __name__ == '__main__':
+    width = 72
+    dotted_line = '-' * width
+    print(dotted_line)
+    print("Textual Warrior v0.0.1")
+    msg = (
+        "A long time ago, a warrior from Valhala came to a town "
+        "because he heard the people were in need. Their princess "
+        "has diappeared and the town is lost without her. The warrior "
+        "is going to have to travel to distant lands to save her. "
+        "You are that warrior...")
+
+    print(textwrap.fill(msg, width = width))
+    print(dotted_line)
+
+
 
 def woods():
     #Enter the first wooded area of the game
