@@ -50,7 +50,7 @@ def reveal_occupants(idx, houses):
 
 def occupy_houses():
     """Randomly populate the `houses` list with occupants"""
-    huts = []
+    houses = []
     occupants = ['enemy', 'friend', 'unoccupied']
     while len(houses) < 5:
         computer_choice = random.choice(occupants)
