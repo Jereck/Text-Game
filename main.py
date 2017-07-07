@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+from gameuniterror GameUnitError
 import random
 import sys
 
@@ -58,8 +59,10 @@ class GameUnit:
         if full_healing:
             self.health_meter == self.max_hp
         else:
-            #This can exceed max hit points FIX LATER
             self.health_meter += heal_by
+
+        if self.health_meter > self.max_hp:
+            raise GameUnitError("health_meter > max_hp!", 101)
 
         print_bold("You are fully healed!", end =' ')
         self.show_health(bold=True)
@@ -110,6 +113,7 @@ class Knight(GameUnit):
                 if continue_attack == 'n':
                     self.run_away()
                     break
+
 
                 self.attack(house.occupant)
 
@@ -198,13 +202,22 @@ class ReturnOfTheWarrior:
         print("Current occupants: %s" % self.get_occupants())
         while verifiying_choice:
             user_choice = input("Choose a house number to enter (1-5): ")
-            idx = int(user_choice)
-            if self.houses[idx-1].is_acquired:
-                print("You already cleared this house of Orcs, or a friend lives in it."
-                    "Please try to clear another house")
-            else:
-                verifiying_choice = False
+            try:
+                idx = int(user_choice)
+            except ValueError as e:
+                print("Invalid input, args: %s \n" % e.args)
+                continue
 
+            try:
+                if self.houses[idx-1].is_acquired:
+                    print("You already cleared this house of Orcs, or a friend lives in it."
+                    "Please try to clear another house")
+                else:
+                    verifiying_choice = False
+            except IndexError:
+                print("Invalid input : ", idx)
+                print("Number should be in the range of 1 to 5. Try again")
+                continue
         return idx
 
     def _occupy_houses(self):
